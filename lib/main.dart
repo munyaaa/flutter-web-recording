@@ -44,7 +44,7 @@ class _MyAppState extends State<MyApp> {
     _recorder = html.MediaRecorder(stream);
     _recorder.start();
 
-    drawPath();
+    _drawPath();
 
     html.Blob blob = html.Blob([]);
 
@@ -87,7 +87,7 @@ class _MyAppState extends State<MyApp> {
 
   void stopRecording() => _recorder.stop();
 
-  void drawPath() {
+  void _drawPath() {
     _context = _canvas.context2D;
     _canvas.onMouseDown.listen((event) {
       _context.beginPath();

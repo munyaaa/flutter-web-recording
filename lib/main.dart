@@ -25,6 +25,9 @@ class _MyAppState extends State<MyApp> {
     _canvas = html.CanvasElement()
       ..width = 300
       ..height = 200;
+    _context = _canvas.context2D;
+    _context.fillStyle = "grey";
+    _context.fillRect(0, 0, 300, 200);
 
     _result = html.VideoElement()
       ..autoplay = false
@@ -88,7 +91,6 @@ class _MyAppState extends State<MyApp> {
   void stopRecording() => _recorder.stop();
 
   void _drawPath() {
-    _context = _canvas.context2D;
     _canvas.onMouseDown.listen((event) {
       _context.beginPath();
       _context.moveTo(event.offset.x, event.offset.y);

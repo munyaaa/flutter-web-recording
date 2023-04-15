@@ -14,18 +14,17 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late html.VideoElement _preview;
   late html.MediaRecorder _recorder;
   late html.VideoElement _result;
+  late html.CanvasElement _canvas;
+  late html.CanvasRenderingContext2D _context;
 
   @override
   void initState() {
     super.initState();
-    _preview = html.VideoElement()
-      ..autoplay = true
-      ..muted = true
-      ..width = html.window.innerWidth!
-      ..height = html.window.innerHeight!;
+    _canvas = html.CanvasElement()
+      ..width = 300
+      ..height = 200;
 
     _result = html.VideoElement()
       ..autoplay = false
@@ -35,22 +34,17 @@ class _MyAppState extends State<MyApp> {
       ..controls = true;
 
     // ignore: undefined_prefixed_name
-    ui.platformViewRegistry.registerViewFactory('preview', (int _) => _preview);
+    ui.platformViewRegistry.registerViewFactory('result', (int _) => _result);
 
     // ignore: undefined_prefixed_name
-    ui.platformViewRegistry.registerViewFactory('result', (int _) => _result);
-  }
-
-  Future<html.MediaStream?> _openCamera() async {
-    final html.MediaStream? stream = await html.window.navigator.mediaDevices
-        ?.getUserMedia({'video': true, 'audio': true});
-    _preview.srcObject = stream;
-    return stream;
+    ui.platformViewRegistry.registerViewFactory('canvas', (int _) => _canvas);
   }
 
   void startRecording(html.MediaStream stream) {
     _recorder = html.MediaRecorder(stream);
     _recorder.start();
+
+    drawPath();
 
     html.Blob blob = html.Blob([]);
 
@@ -71,6 +65,23 @@ class _MyAppState extends State<MyApp> {
   }
 
   void stopRecording() => _recorder.stop();
+
+  void drawPath() {
+    _context = _canvas.context2D;
+    _canvas.onMouseDown.listen((event) {
+      _context.beginPath();
+      _context.moveTo(event.offset.x, event.offset.y);
+
+      final mouseMoveListener = _canvas.onMouseMove.listen((event) {
+        _context.lineTo(event.offset.x, event.offset.y);
+        _context.stroke();
+      });
+
+      _canvas.onMouseUp.listen((event) {
+        mouseMoveListener.cancel();
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,11 +107,14 @@ class _MyAppState extends State<MyApp> {
                 margin: EdgeInsets.symmetric(vertical: 10.0),
                 width: 300,
                 height: 200,
-                color: Colors.blue,
+                color: Colors.purple,
                 child: HtmlElementView(
                   key: UniqueKey(),
-                  viewType: 'preview',
+                  viewType: 'canvas',
                 ),
+              ),
+              SizedBox(
+                height: 20.0,
               ),
               Container(
                 margin: EdgeInsets.all(20.0),
@@ -109,7 +123,8 @@ class _MyAppState extends State<MyApp> {
                   children: <Widget>[
                     ElevatedButton(
                       onPressed: () async {
-                        final html.MediaStream? stream = await _openCamera();
+                        final html.MediaStream? stream =
+                            _canvas.captureStream();
                         startRecording(stream!);
                       },
                       child: Text('Start Recording'),

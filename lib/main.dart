@@ -58,6 +58,7 @@ class _MyAppState extends State<MyApp> {
     _recorder.addEventListener('stop', (event) {
       final url = html.Url.createObjectUrl(blob);
       _result.src = url;
+      _download(url);
 
       stream.getTracks().forEach((track) {
         if (track.readyState == 'live') {
@@ -89,6 +90,12 @@ class _MyAppState extends State<MyApp> {
   }
 
   void stopRecording() => _recorder.stop();
+
+  void _download(String url) {
+    html.AnchorElement(href: url)
+      ..setAttribute('download', 'recorded-video.webm')
+      ..click();
+  }
 
   void _drawPath() {
     _canvas.onMouseDown.listen((event) {

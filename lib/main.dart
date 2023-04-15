@@ -64,6 +64,27 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  Future<html.MediaStream?> _getAudioPermission() async {
+    final html.MediaStream? stream = await html.window.navigator.mediaDevices
+        ?.getUserMedia({'video': false, 'audio': true});
+    return stream;
+  }
+
+  html.MediaStream _getCombinedStreams({
+    required html.MediaStream canvasStream,
+    required html.MediaStream? audioStream,
+  }) {
+    final html.MediaStream combinedStream = new html.MediaStream();
+    canvasStream.getTracks().forEach((track) {
+      combinedStream.addTrack(track);
+    });
+    audioStream?.getAudioTracks().forEach((track) {
+      combinedStream.addTrack(track);
+    });
+
+    return combinedStream;
+  }
+
   void stopRecording() => _recorder.stop();
 
   void drawPath() {
@@ -123,9 +144,13 @@ class _MyAppState extends State<MyApp> {
                   children: <Widget>[
                     ElevatedButton(
                       onPressed: () async {
-                        final html.MediaStream? stream =
-                            _canvas.captureStream();
-                        startRecording(stream!);
+                        html.MediaStream? audioStream =
+                            await _getAudioPermission();
+                        html.MediaStream stream = _getCombinedStreams(
+                          canvasStream: _canvas.captureStream(),
+                          audioStream: audioStream,
+                        );
+                        startRecording(stream);
                       },
                       child: Text('Start Recording'),
                     ),

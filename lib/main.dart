@@ -17,7 +17,9 @@ class _MyAppState extends State<MyApp> {
   late html.MediaRecorder _recorder;
   late html.VideoElement _result;
   late html.CanvasElement _canvas;
+  late html.CanvasElement _canvas2;
   late html.CanvasRenderingContext2D _context;
+  late html.CanvasRenderingContext2D _context2;
 
   @override
   void initState() {
@@ -25,9 +27,17 @@ class _MyAppState extends State<MyApp> {
     _canvas = html.CanvasElement()
       ..width = 300
       ..height = 200;
+    _canvas2 = html.CanvasElement()
+      ..width = 300
+      ..height = 200;
+
     _context = _canvas.context2D;
-    _context.fillStyle = "grey";
+    _context.fillStyle = 'transparent';
     _context.fillRect(0, 0, 300, 200);
+
+    _context2 = _canvas2.context2D;
+    _context2.fillStyle = 'green';
+    _context2.fillRect(0, 0, 300, 200);
 
     _result = html.VideoElement()
       ..autoplay = false
@@ -41,6 +51,9 @@ class _MyAppState extends State<MyApp> {
 
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory('canvas', (int _) => _canvas);
+
+    // ignore: undefined_prefixed_name
+    ui.platformViewRegistry.registerViewFactory('canvas2', (int _) => _canvas2);
   }
 
   void startRecording(html.MediaStream stream) {
@@ -133,15 +146,28 @@ class _MyAppState extends State<MyApp> {
                 'Recording Preview',
                 style: Theme.of(context).textTheme.headline6,
               ),
-              Container(
-                margin: EdgeInsets.symmetric(vertical: 10.0),
-                width: 300,
-                height: 200,
-                color: Colors.purple,
-                child: HtmlElementView(
-                  key: UniqueKey(),
-                  viewType: 'canvas',
-                ),
+              Stack(
+                children: [
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 10.0),
+                    width: 300,
+                    height: 200,
+                    color: Colors.yellow,
+                    child: HtmlElementView(
+                      key: UniqueKey(),
+                      viewType: 'canvas2',
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 10.0),
+                    width: 300,
+                    height: 200,
+                    child: HtmlElementView(
+                      key: UniqueKey(),
+                      viewType: 'canvas',
+                    ),
+                  ),
+                ],
               ),
               SizedBox(
                 height: 20.0,
@@ -155,6 +181,7 @@ class _MyAppState extends State<MyApp> {
                       onPressed: () async {
                         html.MediaStream? audioStream =
                             await _getAudioPermission();
+                        _context.drawImage(_canvas2, 0, 0);
                         html.MediaStream stream = _getCombinedStreams(
                           canvasStream: _canvas.captureStream(),
                           audioStream: audioStream,
